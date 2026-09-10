@@ -1,2 +1,1 @@
-ECHO is on.
-}
+export default function Home() { return (<main style={{padding:40,background:"#090d16",color:"#fff",minHeight:"100vh",fontFamily:"sans-serif"}}><h1 style={{color:"#38bdf8",fontSize:32}}>Nexty</h1><p style={{color:"#94a3b8"}}>Platform media sosial Nexty berhasil aktif!</p></main>); } 
