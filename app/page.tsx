@@ -1,21 +1,21 @@
 'use client';
 import { useState, useEffect } from 'react';
 export default function Home() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<string | null>(null);
   const [usernameInput, setUsernameInput] = useState('');
-  const [posts, setPosts] = useState([
+  const [posts, setPosts] = useState<any[]>([
     { id: 1, author: 'Alex Morgan', content: 'Halo dunia! Selamat datang di Nexty, tempat nongkrong baru kita semua.', likes: 12, comments: [] },
     { id: 2, author: 'Sarah Jenkins', content: 'Ada yang mau mabar atau ngobrol santai malam ini?', likes: 45, comments: [] }
   ]);
   const [newPost, setNewPost] = useState('');
-  const [commentInputs, setCommentInputs] = useState({});
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
   useEffect(() => {
     const savedUser = localStorage.getItem('nexty_user');
     if (savedUser) setUser(savedUser);
     const savedPosts = localStorage.getItem('nexty_posts');
     if (savedPosts) setPosts(JSON.parse(savedPosts));
   }, []);
-  const handleLogin = (e) => {
+  const handleLogin = (e: any) => {
     e.preventDefault();
     if (!usernameInput.trim()) return;
     setUser(usernameInput);
@@ -25,30 +25,30 @@ export default function Home() {
     setUser(null);
     localStorage.removeItem('nexty_user');
   };
-  const saveAndSetPosts = (newPosts) => {
+  const saveAndSetPosts = (newPosts: any[]) => {
     setPosts(newPosts);
     localStorage.setItem('nexty_posts', JSON.stringify(newPosts));
   };
-  const handlePostSubmit = (e) => {
+  const handlePostSubmit = (e: any) => {
     e.preventDefault();
     if (!newPost.trim()) return;
     const postObj = { id: Date.now(), author: user, content: newPost, likes: 0, comments: [] };
     saveAndSetPosts([postObj, ...posts]);
     setNewPost('');
   };
-  const handleLike = (id) => {
-    const updated = posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p);
+  const handleLike = (id: any) => {
+    const updated = posts.map((p: any) => p.id === id ? { ...p, likes: p.likes + 1 } : p);
     saveAndSetPosts(updated);
   };
-  const handleShare = (content) => {
+  const handleShare = (content: any) => {
     navigator.clipboard.writeText(content);
     alert('Tautan postingan berhasil disalin!');
   };
-  const handleCommentSubmit = (postId, e) => {
+  const handleCommentSubmit = (postId: any, e: any) => {
     e.preventDefault();
     const text = commentInputs[postId];
     if (!text || !text.trim()) return;
-    const updated = posts.map(p => {
+    const updated = posts.map((p: any) => {
       if (p.id === postId) {
         return { ...p, comments: [...p.comments, { id: Date.now(), author: user, text }] };
       }
@@ -85,7 +85,7 @@ export default function Home() {
             <button type='submit' style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'8px 16px', borderRadius:20, fontWeight:'bold', cursor:'pointer', fontSize:13}}>Kirim Post</button>
           </div>
         </form>
-        {posts.map(post => (
+        {posts.map((post: any) => (
           <div key={post.id} style={{background:'#111827', padding:16, borderRadius:12, border:'1px solid #1f2937', display:'flex', flexDirection:'column', gap:10}}>
             <h3 style={{margin:0, fontSize:15, color:'#f3f4f6'}}>{post.author}</h3>
             <p style={{color:'#9ca3af', fontSize:14, margin:0}}>{post.content}</p>
@@ -94,7 +94,7 @@ export default function Home() {
               <span onClick={() => handleShare(post.content)} style={{color:'#9ca3af', cursor:'pointer'}}>?? Bagikan</span>
             </div>
             <div style={{display:'flex', flexDirection:'column', gap:8, marginTop:5}}>
-              {post.comments.map(c => (
+              {post.comments.map((c: any) => (
                 <div key={c.id} style={{background:'#1f2937', padding:'6px 10px', borderRadius:8, fontSize:12}}>
                   <strong style={{color:'#e5e7eb'}}>{c.author}: </strong><span style={{color:'#9ca3af'}}>{c.text}</span>
                 </div>
