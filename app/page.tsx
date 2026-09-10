@@ -56,15 +56,42 @@ export default function Home() {
   const handleSignup = (e: any) => {
     e.preventDefault();
     setErrorMsg('');
+    
     if (!signupUsername.trim() || !signupPassword.trim()) {
       setErrorMsg('Username dan password wajib diisi!');
       return;
     }
+
+    // Validasi username: minimal 5 karakter dan minimal 1 huruf kapital
+    if (signupUsername.length < 5) {
+      setErrorMsg('Username minimal harus 5 karakter!');
+      return;
+    }
+    if (!/[A-Z]/.test(signupUsername)) {
+      setErrorMsg('Username harus mengandung setidaknya 1 huruf kapital!');
+      return;
+    }
+
+    // Validasi password: minimal 6 karakter, 1 angka, dan 1 huruf kapital
+    if (signupPassword.length < 6) {
+      setErrorMsg('Password minimal harus 6 karakter!');
+      return;
+    }
+    if (!/[0-9]/.test(signupPassword)) {
+      setErrorMsg('Password harus mengandung setidaknya 1 angka!');
+      return;
+    }
+    if (!/[A-Z]/.test(signupPassword)) {
+      setErrorMsg('Password harus mengandung setidaknya 1 huruf kapital!');
+      return;
+    }
+
     const existingUsers = JSON.parse(localStorage.getItem('nexty_registered_users') || '{}');
     if (existingUsers[signupUsername]) {
       setErrorMsg('Username sudah terdaftar!');
       return;
     }
+
     existingUsers[signupUsername] = signupPassword;
     localStorage.setItem('nexty_registered_users', JSON.stringify(existingUsers));
     setUser(signupUsername);
@@ -79,7 +106,7 @@ export default function Home() {
       return;
     }
     const existingUsers = JSON.parse(localStorage.getItem('nexty_registered_users') || '{}');
-    if (usernameInput === 'admin' && passwordInput === 'admin') {
+    if (usernameInput === 'Admin' && passwordInput === 'Admin123') {
       setUser(usernameInput);
       localStorage.setItem('nexty_current_user', usernameInput);
       return;
@@ -243,8 +270,8 @@ export default function Home() {
       <div style={{minHeight:'100vh', width:'100vw', background:'#090d16', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:0, padding:20, boxSizing:'border-box'}}>
         <div style={{background:'#111827', padding:30, borderRadius:16, border:'1px solid #1f2937', width:360, display:'flex', flexDirection:'column', gap:15}}>
           <h1 style={{color:'#38bdf8', fontSize:28, fontWeight:'bold', textAlign:'center', margin:0}}>nexty</h1>
-          <p style={{color:'#9ca3af', fontSize:13, textAlign:'center', margin:0}}>
-            {authMode === 'login' ? 'Masuk ke akun Nexty kamu' : 'Daftar akun baru ke platform Nexty'}
+          <p style={{color:'#9ca3af', fontSize:12, textAlign:'center', margin:0}}>
+            {authMode === 'login' ? 'Masuk ke akun Nexty kamu' : 'Daftar (User: min 5 char & 1 kapital | Pass: min 6 char, 1 angka & 1 kapital)'}
           </p>
 
           {errorMsg && (
@@ -278,8 +305,8 @@ export default function Home() {
             </form>
           ) : (
             <form onSubmit={handleSignup} style={{display:'flex', flexDirection:'column', gap:12}}>
-              <input type="text" placeholder="Buat Username Baru" value={signupUsername} onChange={(e)=>setSignupUsername(e.target.value)} style={{background:'#1f2937', border:'1px solid #374151', padding:12, borderRadius:8, color:'#fff', outline:'none', fontSize:14}} />
-              <input type="password" placeholder="Buat Password" value={signupPassword} onChange={(e)=>setSignupPassword(e.target.value)} style={{background:'#1f2937', border:'1px solid #374151', padding:12, borderRadius:8, color:'#fff', outline:'none', fontSize:14}} />
+              <input type="text" placeholder="Username (Min. 5 char & 1 Kapital)" value={signupUsername} onChange={(e)=>setSignupUsername(e.target.value)} style={{background:'#1f2937', border:'1px solid #374151', padding:12, borderRadius:8, color:'#fff', outline:'none', fontSize:14}} />
+              <input type="password" placeholder="Password (Min. 6 char, 1 angka & 1 kapital)" value={signupPassword} onChange={(e)=>setSignupPassword(e.target.value)} style={{background:'#1f2937', border:'1px solid #374151', padding:12, borderRadius:8, color:'#fff', outline:'none', fontSize:14}} />
               <button type="submit" style={{background:'#10b981', color:'#fff', border:'none', padding:12, borderRadius:8, fontWeight:'bold', cursor:'pointer', fontSize:14, marginTop:4}}>Daftar & Buat Akun Nexty</button>
             </form>
           )}
