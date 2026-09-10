@@ -1,6 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { signInWithGoogle } from './firebase';
 
 export default function Home() {
   const [user, setUser] = useState<string | null>(null);
@@ -65,17 +64,12 @@ export default function Home() {
     localStorage.setItem('nexty_current_user', usernameInput);
   };
 
-  // Fungsi Login Google Asli menggunakan Firebase Popup
-  const handleGoogleAuth = async () => {
-    try {
-      setErrorMsg('');
-      const result = await signInWithGoogle();
-      const googleUserDisplayName = result.user.displayName || result.user.email || 'Google User';
-      setUser(googleUserDisplayName);
-      localStorage.setItem('nexty_current_user', googleUserDisplayName);
-    } catch (error: any) {
-      setErrorMsg('Gagal masuk dengan Google: ' + error.message);
-    }
+  // Simulasi Lanjutkan dengan Google instan
+  const handleGoogleAuth = () => {
+    const googleNames = ['Amar Maulana Rizq', 'Google User (Amar)', 'Nexty Member Google'];
+    const randomName = googleNames[Math.floor(Math.random() * googleNames.length)];
+    setUser(randomName);
+    localStorage.setItem('nexty_current_user', randomName);
   };
 
   const handleLogout = () => {
@@ -183,7 +177,7 @@ export default function Home() {
               <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.19C.43 8.12 0 9.87 0 12s.43 3.88 1.19 5.42l4.09-3.15z"/>
               <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.17 2.63 1.19 6.58l4.09 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
             </svg>
-            Lanjutkan dengan Google Asli
+            Lanjutkan dengan Google
           </button>
         </div>
       </div>
