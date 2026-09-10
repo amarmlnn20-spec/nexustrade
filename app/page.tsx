@@ -12,13 +12,42 @@ export default function Home() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const [posts, setPosts] = useState<any[]>([
-    { id: 1, author: 'Alex Morgan', content: 'Halo dunia! Selamat datang di Nexty, tempat nongkrong baru kita semua.', likes: 12, comments: [] },
-    { id: 2, author: 'Sarah Jenkins', content: 'Ada yang mau mabar atau ngobrol santai malam ini?', likes: 45, comments: [] }
+    { 
+      id: 1, 
+      author: 'Alex Morgan', 
+      content: 'Halo dunia! Selamat datang di Nexty, platform media sosial masa kini. ??', 
+      likes: 12, 
+      likedBy: [], 
+      dislikes: 0,
+      dislikedBy: [],
+      comments: [
+        { id: 101, author: 'Sarah Jenkins', text: 'Keren banget tampilannya!', likes: 3, likedBy: [], replies: [] }
+      ] 
+    },
+    { 
+      id: 2, 
+      author: 'Sarah Jenkins', 
+      content: 'Ada yang mau mabar atau ngobrol santai malam ini?', 
+      likes: 45, 
+      likedBy: [], 
+      dislikes: 1,
+      dislikedBy: [],
+      comments: [] 
+    }
   ]);
+
   const [newPost, setNewPost] = useState('');
   const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
+  const [replyInputs, setReplyInputs] = useState<Record<number, string>>({});
+  const [activeReplyBox, setActiveReplyBox] = useState<number | null>(null);
 
   useEffect(() => {
+    // Reset margin & padding body agar tidak ada garis putih di pinggir site
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.backgroundColor = '#090d16';
+    document.body.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
     const savedUser = localStorage.getItem('nexty_current_user');
     if (savedUser) setUser(savedUser);
     const savedPosts = localStorage.getItem('nexty_posts');
@@ -64,9 +93,8 @@ export default function Home() {
     localStorage.setItem('nexty_current_user', usernameInput);
   };
 
-  // Simulasi Lanjutkan dengan Google instan
   const handleGoogleAuth = () => {
-    const googleNames = ['Amar Maulana Rizq', 'Google User (Amar)', 'Nexty Member Google'];
+    const googleNames = ['Amar Maulana Rizq', 'Google User', 'Nexty Member'];
     const randomName = googleNames[Math.floor(Math.random() * googleNames.length)];
     setUser(randomName);
     localStorage.setItem('nexty_current_user', randomName);
@@ -85,28 +113,85 @@ export default function Home() {
   const handlePostSubmit = (e: any) => {
     e.preventDefault();
     if (!newPost.trim()) return;
-    const postObj = { id: Date.now(), author: user, content: newPost, likes: 0, comments: [] };
+    const postObj = { 
+      id: Date.now(), 
+      author: user, 
+      content: newPost, 
+      likes: 0, 
+      likedBy: [], 
+      dislikes: 0,
+      dislikedBy: [],
+      comments: [] 
+    };
     saveAndSetPosts([postObj, ...posts]);
     setNewPost('');
   };
 
-  const handleLike = (id: any) => {
-    const updated = posts.map((p: any) => p.id === id ? { ...p, likes: p.likes + 1 } : p);
+  // Like & Dislike Post (Toggle 1 kali, merah jika dilike)
+  const handleLikePost = (postId: number) => {
+    const updated = posts.map((p: any) => {
+      if (p.id === postId) {
+        const likedBy = p.likedBy || [];
+        const dislikedBy = p.dislikedBy || [];
+        let likes = p.likes;
+        let dislikes = p.dislikes;
+
+        if (likedBy.includes(user)) {
+          // Batalkan like jika diklik lagi
+          return { ...p, likes: likes - 1, likedBy: likedBy.filter((u: string) => u !== user) };
+        } else {
+          // Jika sebelumnya dislike, hapus dislike dulu
+          let newDislikedBy = dislikedBy;
+          if (dislikedBy.includes(user)) {
+            dislikes -= 1;
+            newDislikedBy = dislikedBy.filter((u: string) => u !== user);
+          }
+          return { ...p, likes: likes + 1, likedBy: [...likedBy, user], dislikes, dislikedBy: newDislikedBy };
+        }
+      }
+      return p;
+    });
     saveAndSetPosts(updated);
   };
 
-  const handleShare = (content: any) => {
-    navigator.clipboard.writeText(content);
-    alert('Tautan postingan berhasil disalin!');
+  const handleDislikePost = (postId: number) => {
+    const updated = posts.map((p: any) => {
+      if (p.id === postId) {
+        const likedBy = p.likedBy || [];
+        const dislikedBy = p.dislikedBy || [];
+        let likes = p.likes;
+        let dislikes = p.dislikes;
+
+        if (dislikedBy.includes(user)) {
+          return { ...p, dislikes: dislikes - 1, dislikedBy: dislikedBy.filter((u: string) => u !== user) };
+        } else {
+          let newLikedBy = likedBy;
+          if (likedBy.includes(user)) {
+            likes -= 1;
+            newLikedBy = likedBy.filter((u: string) => u !== user);
+          }
+          return { ...p, dislikes: dislikes + 1, dislikedBy: [...dislikedBy, user], likes, likedBy: newLikedBy };
+        }
+      }
+      return p;
+    });
+    saveAndSetPosts(updated);
   };
 
-  const handleCommentSubmit = (postId: any, e: any) => {
+  const handleShare = (content: string) => {
+    navigator.clipboard.writeText(content);
+    alert('Tautan postingan berhasil disalin ke clipboard!');
+  };
+
+  // Komentar Postingan
+  const handleCommentSubmit = (postId: number, e: any) => {
     e.preventDefault();
     const text = commentInputs[postId];
     if (!text || !text.trim()) return;
     const updated = posts.map((p: any) => {
       if (p.id === postId) {
-        return { ...p, comments: [...p.comments, { id: Date.now(), author: user, text }] };
+        const newComment = { id: Date.now(), author: user, text, likes: 0, likedBy: [], replies: [] };
+        return { ...p, comments: [...p.comments, newComment] };
       }
       return p;
     });
@@ -114,9 +199,55 @@ export default function Home() {
     setCommentInputs({ ...commentInputs, [postId]: '' });
   };
 
+  // Like Komentar
+  const handleLikeComment = (postId: number, commentId: number) => {
+    const updated = posts.map((p: any) => {
+      if (p.id === postId) {
+        const updatedComments = p.comments.map((c: any) => {
+          if (c.id === commentId) {
+            const likedBy = c.likedBy || [];
+            if (likedBy.includes(user)) {
+              return { ...c, likes: c.likes - 1, likedBy: likedBy.filter((u: string) => u !== user) };
+            } else {
+              return { ...c, likes: c.likes + 1, likedBy: [...likedBy, user] };
+            }
+          }
+          return c;
+        });
+        return { ...p, comments: updatedComments };
+      }
+      return p;
+    });
+    saveAndSetPosts(updated);
+  };
+
+  // Balas Komentar (Reply)
+  const handleReplySubmit = (postId: number, commentId: number, e: any) => {
+    e.preventDefault();
+    const text = replyInputs[commentId];
+    if (!text || !text.trim()) return;
+    const updated = posts.map((p: any) => {
+      if (p.id === postId) {
+        const updatedComments = p.comments.map((c: any) => {
+          if (c.id === commentId) {
+            const replies = c.replies || [];
+            const newReply = { id: Date.now(), author: user, text };
+            return { ...c, replies: [...replies, newReply] };
+          }
+          return c;
+        });
+        return { ...p, comments: updatedComments };
+      }
+      return p;
+    });
+    saveAndSetPosts(updated);
+    setReplyInputs({ ...replyInputs, [commentId]: '' });
+    setActiveReplyBox(null);
+  };
+
   if (!user) {
     return (
-      <div style={{minHeight:'100vh', background:'#090d16', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'sans-serif', padding:20}}>
+      <div style={{minHeight:'100vh', width:'100vw', background:'#090d16', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', margin:0, padding:20, boxSizing:'border-box'}}>
         <div style={{background:'#111827', padding:30, borderRadius:16, border:'1px solid #1f2937', width:360, display:'flex', flexDirection:'column', gap:15}}>
           <h1 style={{color:'#38bdf8', fontSize:28, fontWeight:'bold', textAlign:'center', margin:0}}>nexty</h1>
           <p style={{color:'#9ca3af', fontSize:13, textAlign:'center', margin:0}}>
@@ -185,8 +316,8 @@ export default function Home() {
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'#090d16', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', fontFamily:'sans-serif', paddingBottom:50}}>
-      <header style={{width:'100%', maxWidth:500, borderBottom:'1px solid #1f2937', padding:'15px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', position:'sticky', top:0, background:'#090d16', zIndex:10}}>
+    <div style={{minHeight:'100vh', width:'100vw', background:'#090d16', color:'#fff', display:'flex', flexDirection:'column', alignItems:'center', margin:0, padding:0, boxSizing:'border-box', paddingBottom:50}}>
+      <header style={{width:'100%', maxWidth:500, borderBottom:'1px solid #1f2937', padding:'15px 20px', display:'flex', justifyContent:'space-between', alignItems:'center', position:'sticky', top:0, background:'#090d16', zIndex:10, boxSizing:'border-box'}}>
         <h1 style={{color:'#38bdf8', fontSize:24, fontWeight:'bold', margin:0}}>nexty</h1>
         <div style={{display:'flex', gap:10, alignItems:'center'}}>
           <span style={{fontSize:13, color:'#9ca3af'}}>@{user}</span>
@@ -194,7 +325,8 @@ export default function Home() {
         </div>
       </header>
 
-      <main style={{width:'100%', maxWidth:500, padding:20, display:'flex', flexDirection:'column', gap:15}}>
+      <main style={{width:'100%', maxWidth:500, padding:20, display:'flex', flexDirection:'column', gap:15, boxSizing:'border-box'}}>
+        {/* Form Buat Postingan */}
         <form onSubmit={handlePostSubmit} style={{background:'#111827', padding:15, borderRadius:12, border:'1px solid #1f2937', display:'flex', flexDirection:'column', gap:10}}>
           <textarea rows={3} value={newPost} onChange={(e)=>setNewPost(e.target.value)} placeholder="Ada apa di pikiranmu hari ini?" style={{background:'transparent', border:'none', color:'#fff', resize:'none', outline:'none', fontSize:14}} />
           <div style={{display:'flex', justifyContent:'flex-end', borderTop:'1px solid #1f2937', paddingTop:10}}>
@@ -202,27 +334,111 @@ export default function Home() {
           </div>
         </form>
 
-        {posts.map((post: any) => (
-          <div key={post.id} style={{background:'#111827', padding:16, borderRadius:12, border:'1px solid #1f2937', display:'flex', flexDirection:'column', gap:10}}>
-            <h3 style={{margin:0, fontSize:15, color:'#f3f4f6'}}>{post.author}</h3>
-            <p style={{color:'#9ca3af', fontSize:14, margin:0}}>{post.content}</p>
-            <div style={{display:'flex', gap:20, borderTop:'1px solid #1f2937', paddingTop:10, fontSize:13}}>
-              <span onClick={() => handleLike(post.id)} style={{color:'#38bdf8', cursor:'pointer'}}>?? {post.likes} Suka</span>
-              <span onClick={() => handleShare(post.content)} style={{color:'#9ca3af', cursor:'pointer'}}>?? Bagikan</span>
+        {/* Daftar Feed Postingan */}
+        {posts.map((post: any) => {
+          const isLiked = post.likedBy && post.likedBy.includes(user);
+          const isDisliked = post.dislikedBy && post.dislikedBy.includes(user);
+
+          return (
+            <div key={post.id} style={{background:'#111827', padding:16, borderRadius:12, border:'1px solid #1f2937', display:'flex', flexDirection:'column', gap:10}}>
+              <h3 style={{margin:0, fontSize:15, color:'#f3f4f6'}}>{post.author}</h3>
+              <p style={{color:'#9ca3af', fontSize:14, margin:0}}>{post.content}</p>
+              
+              {/* Tombol Interaksi Postingan (Like Love Kosong/Merah, Dislike, Pesawat Threads) */}
+              <div style={{display:'flex', alignItems:'center', gap:20, borderTop:'1px solid #1f2937', paddingTop:10, fontSize:13}}>
+                {/* Like Love */}
+                <span 
+                  onClick={() => handleLikePost(post.id)} 
+                  style={{color: isLiked ? '#ef4444' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight: isLiked ? 'bold' : 'normal'}}
+                >
+                  {isLiked ? '??' : '??'} {post.likes} Suka
+                </span>
+
+                {/* Dislike */}
+                <span 
+                  onClick={() => handleDislikePost(post.id)} 
+                  style={{color: isDisliked ? '#38bdf8' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6}}
+                >
+                  ?? {post.dislikes} Dislike
+                </span>
+
+                {/* Bagikan Logo Pesawat Threads */}
+                <span 
+                  onClick={() => handleShare(post.content)} 
+                  style={{color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, marginLeft:'auto'}}
+                  title="Bagikan (Threads Style)"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </span>
+              </div>
+
+              {/* Kolom Komentar */}
+              <div style={{display:'flex', flexDirection:'column', gap:10, marginTop:8, borderTop:'1px solid #1f2937', paddingTop:10}}>
+                {post.comments.map((c: any) => {
+                  const isCommentLiked = c.likedBy && c.likedBy.includes(user);
+                  return (
+                    <div key={c.id} style={{background:'#1f2937', padding:10, borderRadius:8, fontSize:12, display:'flex', flexDirection:'column', gap:6}}>
+                      <div style={{display:'flex', justifyContent:'space-between'}}>
+                        <strong style={{color:'#e5e7eb'}}>{c.author}</strong>
+                        <span 
+                          onClick={() => handleLikeComment(post.id, c.id)} 
+                          style={{color: isCommentLiked ? '#ef4444' : '#9ca3af', cursor:'pointer'}}
+                        >
+                          {isCommentLiked ? '??' : '??'} {c.likes}
+                        </span>
+                      </div>
+                      <span style={{color:'#9ca3af'}}>{c.text}</span>
+
+                      {/* Balasan Komentar (Replies) */}
+                      {c.replies && c.replies.map((r: any) => (
+                        <div key={r.id} style={{background:'#111827', padding:6, borderRadius:6, marginLeft:15, marginTop:4}}>
+                          <strong style={{color:'#38bdf8'}}>{r.author}: </strong>
+                          <span style={{color:'#9ca3af'}}>{r.text}</span>
+                        </div>
+                      ))}
+
+                      {/* Tombol Balas Komentar */}
+                      <span 
+                        onClick={() => setActiveReplyBox(activeReplyBox === c.id ? null : c.id)} 
+                        style={{color:'#38bdf8', cursor:'pointer', fontSize:11, width:'fit-content'}}
+                      >
+                        Balas
+                      </span>
+
+                      {activeReplyBox === c.id && (
+                        <form onSubmit={(e) => handleReplySubmit(post.id, c.id, e)} style={{display:'flex', gap:6, marginTop:4}}>
+                          <input 
+                            type="text" 
+                            placeholder="Tulis balasan..." 
+                            value={replyInputs[c.id] || ''} 
+                            onChange={(e)=>setReplyInputs({...replyInputs, [c.id]: e.target.value})} 
+                            style={{flex:1, background:'#111827', border:'1px solid #374151', padding:'4px 8px', borderRadius:4, color:'#fff', outline:'none', fontSize:11}} 
+                          />
+                          <button type="submit" style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'4px 8px', borderRadius:4, fontWeight:'bold', cursor:'pointer', fontSize:11}}>Kirim</button>
+                        </form>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Form Tambah Komentar */}
+                <form onSubmit={(e)=>handleCommentSubmit(post.id, e)} style={{display:'flex', gap:6, marginTop:4}}>
+                  <input 
+                    type="text" 
+                    placeholder="Tulis komentar..." 
+                    value={commentInputs[post.id] || ''} 
+                    onChange={(e)=>setCommentInputs({...commentInputs, [post.id]: e.target.value})} 
+                    style={{flex:1, background:'#1f2937', border:'1px solid #374151', padding:'8px 10px', borderRadius:6, color:'#fff', outline:'none', fontSize:12}} 
+                  />
+                  <button type="submit" style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'8px 12px', borderRadius:6, fontWeight:'bold', cursor:'pointer', fontSize:12}}>Kirim</button>
+                </form>
+              </div>
             </div>
-            <div style={{display:'flex', flexDirection:'column', gap:8, marginTop:5}}>
-              {post.comments.map((c: any) => (
-                <div key={c.id} style={{background:'#1f2937', padding:'6px 10px', borderRadius:8, fontSize:12}}>
-                  <strong style={{color:'#e5e7eb'}}>{c.author}: </strong><span style={{color:'#9ca3af'}}>{c.text}</span>
-                </div>
-              ))}
-              <form onSubmit={(e)=>handleCommentSubmit(post.id, e)} style={{display:'flex', gap:6, marginTop:4}}>
-                <input type="text" placeholder="Tulis komentar..." value={commentInputs[post.id] || ''} onChange={(e)=>setCommentInputs({...commentInputs, [post.id]: e.target.value})} style={{flex:1, background:'#1f2937', border:'1px solid #374151', padding:'6px 10px', borderRadius:6, color:'#fff', outline:'none', fontSize:12}} />
-                <button type="submit" style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'6px 10px', borderRadius:6, fontWeight:'bold', cursor:'pointer', fontSize:12}}>Balas</button>
-              </form>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </main>
     </div>
   );
