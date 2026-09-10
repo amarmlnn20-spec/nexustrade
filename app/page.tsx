@@ -42,7 +42,6 @@ export default function Home() {
   const [activeReplyBox, setActiveReplyBox] = useState<number | null>(null);
 
   useEffect(() => {
-    // Reset margin & padding body agar tidak ada garis putih di pinggir site
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.backgroundColor = '#090d16';
@@ -127,7 +126,6 @@ export default function Home() {
     setNewPost('');
   };
 
-  // Like & Dislike Post (Toggle 1 kali, merah jika dilike)
   const handleLikePost = (postId: number) => {
     const updated = posts.map((p: any) => {
       if (p.id === postId) {
@@ -137,10 +135,8 @@ export default function Home() {
         let dislikes = p.dislikes;
 
         if (likedBy.includes(user)) {
-          // Batalkan like jika diklik lagi
           return { ...p, likes: likes - 1, likedBy: likedBy.filter((u: string) => u !== user) };
         } else {
-          // Jika sebelumnya dislike, hapus dislike dulu
           let newDislikedBy = dislikedBy;
           if (dislikedBy.includes(user)) {
             dislikes -= 1;
@@ -183,7 +179,6 @@ export default function Home() {
     alert('Tautan postingan berhasil disalin ke clipboard!');
   };
 
-  // Komentar Postingan
   const handleCommentSubmit = (postId: number, e: any) => {
     e.preventDefault();
     const text = commentInputs[postId];
@@ -199,7 +194,6 @@ export default function Home() {
     setCommentInputs({ ...commentInputs, [postId]: '' });
   };
 
-  // Like Komentar
   const handleLikeComment = (postId: number, commentId: number) => {
     const updated = posts.map((p: any) => {
       if (p.id === postId) {
@@ -221,7 +215,6 @@ export default function Home() {
     saveAndSetPosts(updated);
   };
 
-  // Balas Komentar (Reply)
   const handleReplySubmit = (postId: number, commentId: number, e: any) => {
     e.preventDefault();
     const text = replyInputs[commentId];
@@ -326,7 +319,6 @@ export default function Home() {
       </header>
 
       <main style={{width:'100%', maxWidth:500, padding:20, display:'flex', flexDirection:'column', gap:15, boxSizing:'border-box'}}>
-        {/* Form Buat Postingan */}
         <form onSubmit={handlePostSubmit} style={{background:'#111827', padding:15, borderRadius:12, border:'1px solid #1f2937', display:'flex', flexDirection:'column', gap:10}}>
           <textarea rows={3} value={newPost} onChange={(e)=>setNewPost(e.target.value)} placeholder="Ada apa di pikiranmu hari ini?" style={{background:'transparent', border:'none', color:'#fff', resize:'none', outline:'none', fontSize:14}} />
           <div style={{display:'flex', justifyContent:'flex-end', borderTop:'1px solid #1f2937', paddingTop:10}}>
@@ -334,7 +326,6 @@ export default function Home() {
           </div>
         </form>
 
-        {/* Daftar Feed Postingan */}
         {posts.map((post: any) => {
           const isLiked = post.likedBy && post.likedBy.includes(user);
           const isDisliked = post.dislikedBy && post.dislikedBy.includes(user);
@@ -344,38 +335,23 @@ export default function Home() {
               <h3 style={{margin:0, fontSize:15, color:'#f3f4f6'}}>{post.author}</h3>
               <p style={{color:'#9ca3af', fontSize:14, margin:0}}>{post.content}</p>
               
-              {/* Tombol Interaksi Postingan (Like Love Kosong/Merah, Dislike, Pesawat Threads) */}
               <div style={{display:'flex', alignItems:'center', gap:20, borderTop:'1px solid #1f2937', paddingTop:10, fontSize:13}}>
-                {/* Like Love */}
-                <span 
-                  onClick={() => handleLikePost(post.id)} 
-                  style={{color: isLiked ? '#ef4444' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight: isLiked ? 'bold' : 'normal'}}
-                >
+                <span onClick={() => handleLikePost(post.id)} style={{color: isLiked ? '#ef4444' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, fontWeight: isLiked ? 'bold' : 'normal'}}>
                   {isLiked ? '??' : '??'} {post.likes} Suka
                 </span>
 
-                {/* Dislike */}
-                <span 
-                  onClick={() => handleDislikePost(post.id)} 
-                  style={{color: isDisliked ? '#38bdf8' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6}}
-                >
+                <span onClick={() => handleDislikePost(post.id)} style={{color: isDisliked ? '#38bdf8' : '#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6}}>
                   ?? {post.dislikes} Dislike
                 </span>
 
-                {/* Bagikan Logo Pesawat Threads */}
-                <span 
-                  onClick={() => handleShare(post.content)} 
-                  style={{color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, marginLeft:'auto'}}
-                  title="Bagikan (Threads Style)"
-                >
+                <span onClick={() => handleShare(post.content)} style={{color:'#9ca3af', cursor:'pointer', display:'flex', alignItems:'center', gap:6, marginLeft:'auto'}} title="Bagikan">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>
-                    polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                   </svg>
                 </span>
               </div>
 
-              {/* Kolom Komentar */}
               <div style={{display:'flex', flexDirection:'column', gap:10, marginTop:8, borderTop:'1px solid #1f2937', paddingTop:10}}>
                 {post.comments.map((c: any) => {
                   const isCommentLiked = c.likedBy && c.likedBy.includes(user);
@@ -383,16 +359,12 @@ export default function Home() {
                     <div key={c.id} style={{background:'#1f2937', padding:10, borderRadius:8, fontSize:12, display:'flex', flexDirection:'column', gap:6}}>
                       <div style={{display:'flex', justifyContent:'space-between'}}>
                         <strong style={{color:'#e5e7eb'}}>{c.author}</strong>
-                        <span 
-                          onClick={() => handleLikeComment(post.id, c.id)} 
-                          style={{color: isCommentLiked ? '#ef4444' : '#9ca3af', cursor:'pointer'}}
-                        >
+                        <span onClick={() => handleLikeComment(post.id, c.id)} style={{color: isCommentLiked ? '#ef4444' : '#9ca3af', cursor:'pointer'}}>
                           {isCommentLiked ? '??' : '??'} {c.likes}
                         </span>
                       </div>
                       <span style={{color:'#9ca3af'}}>{c.text}</span>
 
-                      {/* Balasan Komentar (Replies) */}
                       {c.replies && c.replies.map((r: any) => (
                         <div key={r.id} style={{background:'#111827', padding:6, borderRadius:6, marginLeft:15, marginTop:4}}>
                           <strong style={{color:'#38bdf8'}}>{r.author}: </strong>
@@ -400,23 +372,13 @@ export default function Home() {
                         </div>
                       ))}
 
-                      {/* Tombol Balas Komentar */}
-                      <span 
-                        onClick={() => setActiveReplyBox(activeReplyBox === c.id ? null : c.id)} 
-                        style={{color:'#38bdf8', cursor:'pointer', fontSize:11, width:'fit-content'}}
-                      >
+                      <span onClick={() => setActiveReplyBox(activeReplyBox === c.id ? null : c.id)} style={{color:'#38bdf8', cursor:'pointer', fontSize:11, width:'fit-content'}}>
                         Balas
                       </span>
 
                       {activeReplyBox === c.id && (
                         <form onSubmit={(e) => handleReplySubmit(post.id, c.id, e)} style={{display:'flex', gap:6, marginTop:4}}>
-                          <input 
-                            type="text" 
-                            placeholder="Tulis balasan..." 
-                            value={replyInputs[c.id] || ''} 
-                            onChange={(e)=>setReplyInputs({...replyInputs, [c.id]: e.target.value})} 
-                            style={{flex:1, background:'#111827', border:'1px solid #374151', padding:'4px 8px', borderRadius:4, color:'#fff', outline:'none', fontSize:11}} 
-                          />
+                          <input type="text" placeholder="Tulis balasan..." value={replyInputs[c.id] || ''} onChange={(e)=>setReplyInputs({...replyInputs, [c.id]: e.target.value})} style={{flex:1, background:'#111827', border:'1px solid #374151', padding:'4px 8px', borderRadius:4, color:'#fff', outline:'none', fontSize:11}} />
                           <button type="submit" style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'4px 8px', borderRadius:4, fontWeight:'bold', cursor:'pointer', fontSize:11}}>Kirim</button>
                         </form>
                       )}
@@ -424,15 +386,8 @@ export default function Home() {
                   );
                 })}
 
-                {/* Form Tambah Komentar */}
                 <form onSubmit={(e)=>handleCommentSubmit(post.id, e)} style={{display:'flex', gap:6, marginTop:4}}>
-                  <input 
-                    type="text" 
-                    placeholder="Tulis komentar..." 
-                    value={commentInputs[post.id] || ''} 
-                    onChange={(e)=>setCommentInputs({...commentInputs, [post.id]: e.target.value})} 
-                    style={{flex:1, background:'#1f2937', border:'1px solid #374151', padding:'8px 10px', borderRadius:6, color:'#fff', outline:'none', fontSize:12}} 
-                  />
+                  <input type="text" placeholder="Tulis komentar..." value={commentInputs[post.id] || ''} onChange={(e)=>setCommentInputs({...commentInputs, [post.id]: e.target.value})} style={{flex:1, background:'#1f2937', border:'1px solid #374151', padding:'8px 10px', borderRadius:6, color:'#fff', outline:'none', fontSize:12}} />
                   <button type="submit" style={{background:'#38bdf8', color:'#090d16', border:'none', padding:'8px 12px', borderRadius:6, fontWeight:'bold', cursor:'pointer', fontSize:12}}>Kirim</button>
                 </form>
               </div>
